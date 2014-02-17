@@ -45,6 +45,50 @@ A collection of text algorithms.
 Note that some intermediate information is cached on the instance to improve
 performance.
 
+=== Q-gram 
+
+The Q-gram is fast way to measure how similar two strings s and t are.
+
+==== Distance
+
+Distance algorithm is specfied in:
+  - "Approximate string-matching with q-grams and maximal matches", Esko Ukkonen. 
+    http://www.cs.helsinki.fi/u/ukkonen/TCS92.pdf
+ 
+Its calculated as the sum of absolute differences between N-gram vectors 
+of both strings.
+
+  Text::Qram.distance('abcde','abdcde')
+  # => 3 
+
+where q_size determines ngrams quantity and size. The right value depends mostly 
+on strings and dictionary length, but 2 usually works well.
+
+==== Similarity / Candidate?
+
+Similarity tries to measure how much two strings have in common, it is 
+usually used as a filter before calling a slower edit distance algorithms 
+(eg. Levenshtein), because it executes faster without lossing results:
+   
+  max_distance  = 2
+  is_candidate  = Text::Qram.candidate?(S, T, max_distance)
+  distance      = Text::Levenshtein.distance(S, T, max_distance) if is_candidate
+
+where max_distance is the worst edit distance value tolerated. Qgram  will 
+never discard strings with an edit distance less or equal than max_distance
+but probably will let pass some "false positives" that will be finally discarded
+using Levenshtein algorithm.
+ 
+Filters where defined in: 
+
+ - "Approximate String Joins in a Database (Almost) for Free"
+   https://www.cs.umd.edu/class/spring2012/cmsc828L/Papers/GravanoVLDB01.pdf) and in
+ - "Ed-Join: An Efﬁcient Algorithm for Similarity Joins With Edit Distance Constraints"
+   http://www.cse.unsw.edu.au/~weiw/files/VLDB08-EdJoin-Final.pdf
+
+Please, note that calculated ngrams are cached when possible to avoid recalculate them when qgram 
+is used to compare the same string multiple times.
+
 == Ruby version compatibility
 
 The library has been tested on Ruby 1.8.6 to 1.9.3 and on JRuby.
